@@ -32,6 +32,8 @@ export type Listing = {
 
 type ListingResponse = { data: Listing[]; meta: { total: number; totalPages: number; page: number; pageSize: number } };
 
+export type AuthUser = { id: string; email: string; displayName: string; role: string; avatarUrl: string | null };
+
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api/v1";
 
 export async function fetchListings(params: Record<string, string>) {
@@ -39,4 +41,15 @@ export async function fetchListings(params: Record<string, string>) {
   const response = await fetch(`${API_URL}/listings?${query.toString()}`);
   if (!response.ok) throw new Error("Unable to load listings");
   return (await response.json()) as ListingResponse;
+}
+
+export async function login(email: string, password: string) {
+  const response = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  const body = await response.json();
+  if (!response.ok) throw new Error(body.error?.message ?? "Unable to sign in");
+  return body.data as { token: string; user: AuthUser };
 }

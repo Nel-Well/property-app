@@ -15,6 +15,10 @@ button { cursor: pointer; }
 .nav-links a, .nav-login { color: #526368; font-size: .9rem; text-decoration: none; border: 0; background: transparent; }
 .nav-links a:hover, .nav-login:hover { color: var(--teal); }
 .nav-actions { display: flex; align-items: center; gap: 1rem; }
+.user-menu { display: flex; align-items: center; gap: .45rem; }
+.user-avatar { display: grid; place-items: center; width: 28px; height: 28px; color: #fff; border-radius: 50%; background: var(--teal); font-size: .75rem; font-weight: 800; }
+.user-role { display: grid; gap: .05rem; color: var(--teal-dark); font-size: .75rem; font-weight: 700; line-height: 1.1; }
+.user-role small { color: var(--muted); font-size: .62rem; font-weight: 500; text-transform: capitalize; }
 .button { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; border: 0; border-radius: 9px; font-weight: 700; transition: transform .15s ease, background .15s ease; }
 .button:hover { transform: translateY(-1px); }
 .button-primary { color: #fff; background: var(--teal); }
@@ -95,5 +99,16 @@ h2 { margin: .65rem 0 .5rem; color: var(--teal-dark); font-family: 'Playfair Dis
 .steps h3 { margin: .6rem 0 .45rem; color: var(--teal-dark); font-size: 1.1rem; }
 .steps p { max-width: 270px; margin: 0; color: var(--muted); font-size: .83rem; line-height: 1.65; }
 .footer { display: flex; align-items: center; justify-content: space-between; max-width: 1200px; gap: 1rem; margin: auto; padding: 1.5rem 2rem 2rem; color: #829093; border-top: 1px solid #e8edec; font-size: .72rem; }
-@media (max-width: 800px) { .navbar { padding: 0 1.25rem; } .nav-links { display: none; position: absolute; top: 70px; right: 1rem; left: 1rem; flex-direction: column; gap: 0; padding: .5rem; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: 0 15px 30px rgba(0,0,0,.12); } .nav-links.is-open { display: flex; } .nav-links a { padding: .75rem; } .nav-actions .button, .nav-login { display: none; } .menu-button { display: block; } .search-fields { grid-template-columns: 1fr 1fr; } .search-button { grid-column: 1 / -1; } .listing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .city-section { grid-template-columns: 1fr; gap: 2rem; } }
+.modal-backdrop { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 1.25rem; background: rgba(7, 39, 43, .58); backdrop-filter: blur(5px); }
+.auth-modal { position: relative; width: min(500px, 100%); padding: 2rem; border-radius: 18px; background: #fff; box-shadow: 0 24px 80px rgba(0,0,0,.28); }
+.modal-close { position: absolute; top: 1rem; right: 1rem; display: grid; place-items: center; width: 30px; height: 30px; color: var(--muted); border: 0; border-radius: 50%; background: #f1f5f4; }
+.modal-intro { margin: 0 0 1.4rem; color: var(--muted); font-size: .86rem; line-height: 1.6; }
+.auth-modal form { display: grid; gap: .85rem; }
+.auth-modal label { display: grid; gap: .45rem; color: var(--muted); font-size: .72rem; font-weight: 800; }
+.auth-modal select { padding: .8rem .9rem; color: var(--ink); border: 1px solid var(--line); border-radius: 9px; outline: 0; background: #fff; font-size: .85rem; }
+.auth-preview { display: grid; gap: .15rem; padding: .8rem .9rem; color: var(--teal-dark); border-radius: 9px; background: #eef7f4; font-size: .8rem; }
+.auth-preview span { color: var(--muted); font-size: .72rem; }
+.auth-error { padding: .7rem .8rem; color: #9f3b3b; border-radius: 8px; background: #fff0ef; font-size: .76rem; }
+.full-button { width: 100%; margin-top: .3rem; }
+@media (max-width: 800px) { .navbar { padding: 0 1.25rem; } .nav-links { display: none; position: absolute; top: 70px; right: 1rem; left: 1rem; flex-direction: column; gap: 0; padding: .5rem; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: 0 15px 30px rgba(0,0,0,.12); } .nav-links.is-open { display: flex; } .nav-links a { padding: .75rem; } .nav-actions > .button, .nav-actions > .nav-login { display: none; } .user-menu .nav-login { display: block; } .menu-button { display: block; } .search-fields { grid-template-columns: 1fr 1fr; } .search-button { grid-column: 1 / -1; } .listing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .city-section { grid-template-columns: 1fr; gap: 2rem; } }
 @media (max-width: 560px) { .hero { min-height: 620px; padding-top: 3.8rem; } .hero h1 { font-size: 2.65rem; } .search-fields, .trust-strip, .city-cards, .steps { grid-template-columns: 1fr; } .trust-strip { gap: 1.3rem; } .section, .city-section, .how-section { padding-right: 1.25rem; padding-left: 1.25rem; } .section-heading { align-items: start; flex-direction: column; gap: .7rem; } .listing-grid { grid-template-columns: 1fr; } .footer { align-items: start; flex-direction: column; padding-right: 1.25rem; padding-left: 1.25rem; } }

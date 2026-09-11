@@ -1,14 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { ArrowRight, BedDouble, Building2, ChevronDown, Heart, MapPin, Menu, Search, ShieldCheck, Sparkles, X } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { demoListings } from "./data/demo";
-import { fetchListings, type Listing } from "./lib/api";
+import { fetchListings, login, type AuthUser, type Listing } from "./lib/api";
 import { formatPrice } from "./lib/utils";
 import "./index.css";
 
 const categories = ["All property types", "Apartment", "House", "Land", "Condominium", "Room", "Commercial"];
 const cities = ["All locations", "Yangon", "Mandalay"];
+const demoAccounts = [
+  { label: "Buyer / renter", email: "demo19@property-portal.local" },
+  { label: "Owner", email: "demo9@property-portal.local" },
+  { label: "Agent", email: "demo1@property-portal.local" },
+  { label: "Staff", email: "demo17@property-portal.local" },
+  { label: "Admin", email: "demo18@property-portal.local" },
+];
 
 function ListingCard({ listing }: { listing: Listing }) {
   const [saved, setSaved] = useState(false);
@@ -41,6 +48,13 @@ export default function App() {
   const [listings, setListings] = useState<Listing[]>(demoListings);
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [signInOpen, setSignInOpen] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState(demoAccounts[0]);
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const cached = localStorage.getItem("property-portal-user");
+    return cached ? JSON.parse(cached) as AuthUser : null;
+  });
+  const [authError, setAuthError] = useState("");
   const visibleListings = useMemo(() => listings.filter((listing) => listing.transactionType === mode || listing.featured), [listings, mode]);
 
   useEffect(() => {
@@ -49,12 +63,32 @@ export default function App() {
     fetchListings(params).then((result) => setListings(result.data)).catch(() => setListings(demoListings)).finally(() => setLoading(false));
   }, [mode, city, category]);
 
+  async function handleSignIn(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setAuthError("");
+    try {
+      const session = await login(selectedAccount.email, "demo-password");
+      localStorage.setItem("property-portal-token", session.token);
+      localStorage.setItem("property-portal-user", JSON.stringify(session.user));
+      setUser(session.user);
+      setSignInOpen(false);
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : "Unable to sign in");
+    }
+  }
+
+  function signOut() {
+    localStorage.removeItem("property-portal-token");
+    localStorage.removeItem("property-portal-user");
+    setUser(null);
+  }
+
   return (
     <div className="site-shell">
       <header className="navbar">
         <a className="wordmark" href="#top"><span className="wordmark-mark">T</span><span>thiri<span className="wordmark-muted">properties</span></span></a>
         <nav className={menuOpen ? "nav-links is-open" : "nav-links"}><a href="#properties">Buy</a><a href="#properties">Rent</a><a href="#how-it-works">Sell with us</a><a href="#about">About</a></nav>
-        <div className="nav-actions"><button className="nav-login">Sign in</button><Button size="sm">List your property</Button><button className="menu-button" aria-label="Toggle navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button></div>
+        <div className="nav-actions">{user ? <div className="user-menu"><span className="user-avatar">{user.displayName.slice(0, 1)}</span><span className="user-role">{user.displayName}<small>{user.role}</small></span><button className="nav-login" onClick={signOut}>Sign out</button></div> : <button className="nav-login" onClick={() => setSignInOpen(true)}>Sign in</button>}<Button size="sm" onClick={() => setSignInOpen(true)}>List your property</Button><button className="menu-button" aria-label="Toggle navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button></div>
       </header>
 
       <main id="top">
@@ -75,6 +109,7 @@ export default function App() {
 
         <section className="how-section" id="how-it-works"><div className="section-kicker">Simple from start to finish</div><h2>A more considered property journey.</h2><div className="steps"><div><span>01</span><h3>Search with clarity</h3><p>Use real neighborhood names and filters that reflect what you actually need.</p></div><div><span>02</span><h3>See the full picture</h3><p>Compare transparent details, photos, amenities, and who you are contacting.</p></div><div><span>03</span><h3>Make a confident move</h3><p>Save your shortlist and reach out directly when something feels right.</p></div></div></section>
       </main>
+      {signInOpen && <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && setSignInOpen(false)}><div className="auth-modal" role="dialog" aria-modal="true" aria-labelledby="sign-in-title"><button className="modal-close" onClick={() => setSignInOpen(false)} aria-label="Close sign in"><X size={18} /></button><div className="section-kicker">Demo access</div><h2 id="sign-in-title">Sign in to test a role.</h2><p className="modal-intro">Choose a seeded account. Every demo account uses the password <code>demo-password</code>.</p><form onSubmit={handleSignIn}><label>Test account<select value={selectedAccount.email} onChange={(event) => setSelectedAccount(demoAccounts.find((account) => account.email === event.target.value) ?? demoAccounts[0])}>{demoAccounts.map((account) => <option key={account.email} value={account.email}>{account.label} — {account.email}</option>)}</select></label><div className="auth-preview"><strong>{selectedAccount.label}</strong><span>{selectedAccount.email}</span></div>{authError && <div className="auth-error">{authError}</div>}<Button size="lg" className="full-button" type="submit">Continue as {selectedAccount.label}</Button></form></div></div>}
       <footer className="footer"><div className="wordmark"><span className="wordmark-mark">T</span><span>thiri<span className="wordmark-muted">properties</span></span></div><span>Property search, with a little more care.</span><span>© 2026 Thiri Properties</span></footer>
     </div>
   );
