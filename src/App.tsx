@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { ArrowRight, BedDouble, Building2, ChevronDown, Heart, MapPin, Menu, Search, ShieldCheck, Sparkles, X } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
+import { Dashboard } from "./components/Dashboard";
+import { ListingForm } from "./components/ListingForm";
+import { PropertyDetail } from "./components/PropertyDetail";
 import { demoListings } from "./data/demo";
 import { fetchListings, login, type AuthUser, type Listing } from "./lib/api";
 import { formatPrice } from "./lib/utils";
@@ -17,7 +20,7 @@ const demoAccounts = [
   { label: "Admin", email: "demo18@property-portal.local" },
 ];
 
-function ListingCard({ listing }: { listing: Listing }) {
+function ListingCard({ listing, onOpen }: { listing: Listing; onOpen: (listing: Listing) => void }) {
   const [saved, setSaved] = useState(false);
   const image = listing.media.find((item) => item.primary)?.url ?? listing.media[0]?.url;
   return (
@@ -35,7 +38,7 @@ function ListingCard({ listing }: { listing: Listing }) {
           {listing.property.bedrooms !== null && <span><BedDouble size={16} /> {listing.property.bedrooms} beds</span>}
           {listing.property.floorArea !== null && <span><Building2 size={15} /> {listing.property.floorArea.toLocaleString()} sqft</span>}
         </div>
-        <div className="listing-footer"><strong>{formatPrice(listing.price, listing.transactionType)}</strong><button className="text-button">View details <ArrowRight size={15} /></button></div>
+        <div className="listing-footer"><strong>{formatPrice(listing.price, listing.transactionType)}</strong><button className="text-button" onClick={() => onOpen(listing)}>View details <ArrowRight size={15} /></button></div>
       </div>
     </Card>
   );
@@ -48,6 +51,8 @@ export default function App() {
   const [listings, setListings] = useState<Listing[]>(demoListings);
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [view, setView] = useState<"home" | "dashboard" | "create" | "detail">("home");
+  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [signInOpen, setSignInOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(demoAccounts[0]);
   const [user, setUser] = useState<AuthUser | null>(() => {
@@ -72,6 +77,7 @@ export default function App() {
       localStorage.setItem("property-portal-user", JSON.stringify(session.user));
       setUser(session.user);
       setSignInOpen(false);
+      setView("dashboard");
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : "Unable to sign in");
     }
@@ -81,6 +87,13 @@ export default function App() {
     localStorage.removeItem("property-portal-token");
     localStorage.removeItem("property-portal-user");
     setUser(null);
+    setView("home");
+  }
+
+  function openListing(listing: Listing) {
+    setSelectedListing(listing);
+    setView("detail");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   return (
@@ -88,10 +101,11 @@ export default function App() {
       <header className="navbar">
         <a className="wordmark" href="#top"><span className="wordmark-mark">T</span><span>thiri<span className="wordmark-muted">properties</span></span></a>
         <nav className={menuOpen ? "nav-links is-open" : "nav-links"}><a href="#properties">Buy</a><a href="#properties">Rent</a><a href="#how-it-works">Sell with us</a><a href="#about">About</a></nav>
-        <div className="nav-actions">{user ? <div className="user-menu"><span className="user-avatar">{user.displayName.slice(0, 1)}</span><span className="user-role">{user.displayName}<small>{user.role}</small></span><button className="nav-login" onClick={signOut}>Sign out</button></div> : <button className="nav-login" onClick={() => setSignInOpen(true)}>Sign in</button>}<Button size="sm" onClick={() => setSignInOpen(true)}>List your property</Button><button className="menu-button" aria-label="Toggle navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button></div>
+        <div className="nav-actions">{user ? <div className="user-menu"><span className="user-avatar">{user.displayName.slice(0, 1)}</span><span className="user-role">{user.displayName}<small>{user.role.replace("_", " ")}</small></span><button className="nav-login" onClick={() => setView("dashboard")}>Dashboard</button><button className="nav-login" onClick={signOut}>Sign out</button></div> : <button className="nav-login" onClick={() => setSignInOpen(true)}>Sign in</button>}<Button size="sm" onClick={() => user && ["owner", "agent"].includes(user.role) ? setView("create") : setSignInOpen(true)}>List your property</Button><button className="menu-button" aria-label="Toggle navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button></div>
       </header>
 
       <main id="top">
+        {view === "home" ? <>
         <section className="hero">
           <div className="hero-copy"><div className="hero-kicker"><Sparkles size={15} /> A better way to find your place</div><h1>Find a place that feels like <em>home.</em></h1><p>Explore thoughtfully listed homes, land, and spaces across Yangon and Mandalay.</p></div>
           <div className="search-panel">
@@ -103,11 +117,12 @@ export default function App() {
 
         <section className="trust-strip"><div><strong>2,400+</strong><span>properties listed</span></div><div><strong>Yangon · Mandalay</strong><span>and growing every month</span></div><div><strong>100% human-reviewed</strong><span>so you can search with confidence</span></div></section>
 
-        <section className="section" id="properties"><div className="section-heading"><div><div className="section-kicker">Curated for you</div><h2>Places worth looking at</h2><p>Fresh listings from owners and trusted local agents.</p></div><button className="outline-button">See all properties <ArrowRight size={16} /></button></div><div className="listing-grid">{loading ? <div className="loading-state">Finding the right places<span>•••</span></div> : visibleListings.map((listing) => <ListingCard key={listing.id} listing={listing} />)}</div></section>
+        <section className="section" id="properties"><div className="section-heading"><div><div className="section-kicker">Curated for you</div><h2>Places worth looking at</h2><p>Fresh listings from owners and trusted local agents.</p></div><button className="outline-button">See all properties <ArrowRight size={16} /></button></div><div className="listing-grid">{loading ? <div className="loading-state">Finding the right places<span>•••</span></div> : visibleListings.map((listing) => <ListingCard key={listing.id} listing={listing} onOpen={openListing} />)}</div></section>
 
         <section className="city-section" id="about"><div className="city-copy"><div className="section-kicker">Start local</div><h2>Made for the way Myanmar finds property.</h2><p>Search by the neighborhoods you know, understand the details that matter, and connect directly with the people behind each listing.</p><button className="text-button large">Explore Yangon <ArrowRight size={16} /></button></div><div className="city-cards"><div className="city-card city-yangon"><span>Yangon</span><small>1,640 listings</small></div><div className="city-card city-mandalay"><span>Mandalay</span><small>760 listings</small></div></div></section>
 
         <section className="how-section" id="how-it-works"><div className="section-kicker">Simple from start to finish</div><h2>A more considered property journey.</h2><div className="steps"><div><span>01</span><h3>Search with clarity</h3><p>Use real neighborhood names and filters that reflect what you actually need.</p></div><div><span>02</span><h3>See the full picture</h3><p>Compare transparent details, photos, amenities, and who you are contacting.</p></div><div><span>03</span><h3>Make a confident move</h3><p>Save your shortlist and reach out directly when something feels right.</p></div></div></section>
+        </> : view === "detail" && selectedListing ? <PropertyDetail listing={selectedListing} user={user} onBack={() => setView("home")} onSignIn={() => setSignInOpen(true)} /> : view === "create" && user ? <ListingForm onBack={() => setView("dashboard")} onCreated={() => setView("dashboard")} /> : view === "dashboard" && user ? <Dashboard user={user} onAddProperty={() => setView("create")} onBack={() => setView("home")} /> : null}
       </main>
       {signInOpen && <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && setSignInOpen(false)}><div className="auth-modal" role="dialog" aria-modal="true" aria-labelledby="sign-in-title"><button className="modal-close" onClick={() => setSignInOpen(false)} aria-label="Close sign in"><X size={18} /></button><div className="section-kicker">Demo access</div><h2 id="sign-in-title">Sign in to test a role.</h2><p className="modal-intro">Choose a seeded account. Every demo account uses the password <code>demo-password</code>.</p><form onSubmit={handleSignIn}><label>Test account<select value={selectedAccount.email} onChange={(event) => setSelectedAccount(demoAccounts.find((account) => account.email === event.target.value) ?? demoAccounts[0])}>{demoAccounts.map((account) => <option key={account.email} value={account.email}>{account.label} — {account.email}</option>)}</select></label><div className="auth-preview"><strong>{selectedAccount.label}</strong><span>{selectedAccount.email}</span></div>{authError && <div className="auth-error">{authError}</div>}<Button size="lg" className="full-button" type="submit">Continue as {selectedAccount.label}</Button></form></div></div>}
       <footer className="footer"><div className="wordmark"><span className="wordmark-mark">T</span><span>thiri<span className="wordmark-muted">properties</span></span></div><span>Property search, with a little more care.</span><span>© 2026 Thiri Properties</span></footer>
