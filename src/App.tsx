@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { ArrowRight, BedDouble, Building2, ChevronDown, Heart, MapPin, Menu, Search, ShieldCheck, Sparkles, X } from "lucide-react";
+import { ArrowRight, BedDouble, Building2, ChevronDown, Heart, MapPin, Menu, Moon, Search, ShieldCheck, Sparkles, Sun, X } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Dashboard } from "./components/Dashboard";
@@ -19,6 +19,14 @@ const demoAccounts = [
   { label: "Staff", email: "demo17@property-portal.local" },
   { label: "Admin", email: "demo18@property-portal.local" },
 ];
+
+type Theme = "light" | "dark";
+
+function getInitialTheme(): Theme {
+  const savedTheme = localStorage.getItem("property-portal-theme");
+  if (savedTheme === "light" || savedTheme === "dark") return savedTheme;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
 
 function ListingCard({ listing, onOpen }: { listing: Listing; onOpen: (listing: Listing) => void }) {
   const [saved, setSaved] = useState(false);
@@ -45,6 +53,7 @@ function ListingCard({ listing, onOpen }: { listing: Listing; onOpen: (listing: 
 }
 
 export default function App() {
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const [mode, setMode] = useState<"buy" | "rent">("buy");
   const [city, setCity] = useState("All locations");
   const [category, setCategory] = useState("All property types");
@@ -61,6 +70,11 @@ export default function App() {
   });
   const [authError, setAuthError] = useState("");
   const visibleListings = useMemo(() => listings.filter((listing) => listing.transactionType === mode || listing.featured), [listings, mode]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem("property-portal-theme", theme);
+  }, [theme]);
 
   useEffect(() => {
     const params = { transactionType: mode, city: city === "All locations" ? "" : city.toLowerCase(), category: category === "All property types" ? "" : category.toLowerCase(), pageSize: "12" };
@@ -101,7 +115,7 @@ export default function App() {
       <header className="navbar">
         <a className="wordmark" href="#top"><span className="wordmark-mark">T</span><span>thiri<span className="wordmark-muted">properties</span></span></a>
         <nav className={menuOpen ? "nav-links is-open" : "nav-links"}><a href="#properties">Buy</a><a href="#properties">Rent</a><a href="#how-it-works">Sell with us</a><a href="#about">About</a></nav>
-        <div className="nav-actions">{user ? <div className="user-menu"><span className="user-avatar">{user.displayName.slice(0, 1)}</span><span className="user-role">{user.displayName}<small>{user.role.replace("_", " ")}</small></span><button className="nav-login" onClick={() => setView("dashboard")}>Dashboard</button><button className="nav-login" onClick={signOut}>Sign out</button></div> : <button className="nav-login" onClick={() => setSignInOpen(true)}>Sign in</button>}<Button size="sm" onClick={() => user && ["owner", "agent"].includes(user.role) ? setView("create") : setSignInOpen(true)}>List your property</Button><button className="menu-button" aria-label="Toggle navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button></div>
+        <div className="nav-actions">{user ? <div className="user-menu"><span className="user-avatar">{user.displayName.slice(0, 1)}</span><span className="user-role">{user.displayName}<small>{user.role.replace("_", " ")}</small></span><button className="nav-login" onClick={() => setView("dashboard")}>Dashboard</button><button className="nav-login" onClick={signOut}>Sign out</button></div> : <button className="nav-login" onClick={() => setSignInOpen(true)}>Sign in</button>}<button className="theme-toggle" type="button" aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`} title={`Switch to ${theme === "light" ? "dark" : "light"} mode`} onClick={() => setTheme(theme === "light" ? "dark" : "light")}>{theme === "light" ? <Moon size={17} /> : <Sun size={17} />}</button><Button size="sm" onClick={() => user && ["owner", "agent"].includes(user.role) ? setView("create") : setSignInOpen(true)}>List your property</Button><button className="menu-button" aria-label="Toggle navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button></div>
       </header>
 
       <main id="top">

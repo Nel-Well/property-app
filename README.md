@@ -33,4 +33,6 @@ Use the sign-in dialog to choose a seeded buyer/renter, owner, agent, staff, or 
 
 The UI is configured for shadcn/ui preset `b7ClNFsdU`; reusable primitives live in `components/ui`.
 
+Use the sun/moon button in the header to switch between light and dark mode. The selected theme is saved in the browser and defaults to the operating system preference for first-time visitors.
+
 See the workspace [AGENTS.md](../AGENTS.md) for stable web boundaries and [SPEC.md](../SPEC.md) for the product behavior being implemented.
