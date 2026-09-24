@@ -117,8 +117,26 @@ export default function App() {
     <div className="site-shell">
       <header className="navbar">
         <a className="wordmark" href="#top"><span className="wordmark-mark">T</span><span>thiri<span className="wordmark-muted">properties</span></span></a>
-        <nav className={menuOpen ? "nav-links is-open" : "nav-links"}><a href="#properties">{t("buy")}</a><a href="#properties">{t("rent")}</a><a href="#how-it-works">{t("sellWithUs")}</a><a href="#about">{t("about")}</a></nav>
-        <div className="nav-actions">{user ? <div className="user-menu"><span className="user-avatar">{user.displayName.slice(0, 1)}</span><span className="user-role">{user.displayName}<small>{user.role === "buyer_renter" ? t("roleBuyer") : t(user.role === "owner" ? "roleOwner" : user.role === "agent" ? "roleAgent" : user.role === "staff" ? "roleStaff" : "roleAdmin")}</small></span><button className="nav-login" onClick={() => setView("dashboard")}>{t("dashboard")}</button><button className="nav-login" onClick={signOut}>{t("signOut")}</button></div> : <button className="nav-login" onClick={() => setSignInOpen(true)}>{t("signIn")}</button>}<label className="language-select"><span className="sr-only">{t("language")}</span><select aria-label={t("language")} value={language} onChange={(event) => setLanguage(event.target.value as "en" | "my")}><option value="en">EN</option><option value="my">မြန်မာ</option></select></label><button className="theme-toggle" type="button" aria-label={t("themeMode")} title={t("themeMode")} onClick={() => setTheme(theme === "light" ? "dark" : "light")}>{theme === "light" ? <Moon size={17} /> : <Sun size={17} />}</button><Button size="sm" onClick={() => user && ["owner", "agent"].includes(user.role) ? setView("create") : setSignInOpen(true)}>{t("listProperty")}</Button><button className="menu-button" aria-label="Toggle navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button></div>
+        <nav id="site-navigation" className={menuOpen ? "nav-links is-open" : "nav-links"}>
+          <a href="#properties" onClick={() => setMenuOpen(false)}>{t("buy")}</a>
+          <a href="#properties" onClick={() => setMenuOpen(false)}>{t("rent")}</a>
+          <a href="#how-it-works" onClick={() => setMenuOpen(false)}>{t("sellWithUs")}</a>
+          <a href="#about" onClick={() => setMenuOpen(false)}>{t("about")}</a>
+          <div className="mobile-nav-actions">
+            {user ? <>
+              <button onClick={() => { setView("dashboard"); setMenuOpen(false); }}>{t("dashboard")}</button>
+              <button onClick={() => { signOut(); setMenuOpen(false); }}>{t("signOut")}</button>
+            </> : <button onClick={() => { setSignInOpen(true); setMenuOpen(false); }}>{t("signIn")}</button>}
+            <Button size="sm" onClick={() => { user && ["owner", "agent"].includes(user.role) ? setView("create") : setSignInOpen(true); setMenuOpen(false); }}>{t("listProperty")}</Button>
+          </div>
+        </nav>
+        <div className="nav-actions">
+          {user ? <div className="user-menu"><span className="user-avatar">{user.displayName.slice(0, 1)}</span><span className="user-role">{user.displayName}<small>{user.role === "buyer_renter" ? t("roleBuyer") : t(user.role === "owner" ? "roleOwner" : user.role === "agent" ? "roleAgent" : user.role === "staff" ? "roleStaff" : "roleAdmin")}</small></span><button className="nav-login" onClick={() => setView("dashboard")}>{t("dashboard")}</button><button className="nav-login" onClick={signOut}>{t("signOut")}</button></div> : <button className="nav-login" onClick={() => setSignInOpen(true)}>{t("signIn")}</button>}
+          <label className="language-select"><span className="sr-only">{t("language")}</span><select aria-label={t("language")} value={language} onChange={(event) => setLanguage(event.target.value as "en" | "my")}><option value="en">EN</option><option value="my">မြန်မာ</option></select></label>
+          <button className="theme-toggle" type="button" aria-label={t("themeMode")} title={t("themeMode")} onClick={() => setTheme(theme === "light" ? "dark" : "light")}>{theme === "light" ? <Moon size={17} /> : <Sun size={17} />}</button>
+          <Button size="sm" onClick={() => user && ["owner", "agent"].includes(user.role) ? setView("create") : setSignInOpen(true)}>{t("listProperty")}</Button>
+          <button className="menu-button" type="button" aria-label="Toggle navigation" aria-controls="site-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button>
+        </div>
       </header>
 
       <main id="top">
